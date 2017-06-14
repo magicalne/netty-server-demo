@@ -1,0 +1,83 @@
+import org.apache.avro.Protocol
+import org.apache.avro.Schema
+import org.apache.avro.compiler.specific.SpecificCompiler
+
+buildscript {
+	ext {
+		springBootVersion = '1.5.4.RELEASE'
+		avroVersion = '1.8.2'
+	}
+	repositories {
+		maven {
+			url 'http://maven.aliyun.com/mvn/repository/'
+		}
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("org.apache.avro:avro-tools:${avroVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	maven {
+		url 'http://maven.aliyun.com/mvn/repository/'
+	}
+	mavenCentral()
+}
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter')
+	compile("org.apache.avro:avro:${avroVersion}")
+	compile group: 'org.apache.avro', name: 'avro-ipc', version: avroVersion
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+//
+// define source and destination
+//
+def avprFiles = fileTree('src/protocol').include('**/*.avpr')
+// Do NOT generate into $buildDir, because IntelliJ will ignore files in
+// this location and will show errors in source code
+def generatedJavaDir = "generated"
+
+sourceSets.main.java.srcDir generatedJavaDir
+
+//
+// Define task's input and output, compile idl to schema and schema to java
+//
+task('buildAvroProtocol') {
+	group = "build"
+	inputs.files avprFiles
+	outputs.dir generatedJavaDir
+	doLast {
+		avprFiles.each { file ->
+			def protocol = Protocol.parse(file as File)
+//			def schema = new Schema.Parser().parse(file as File)
+			def compiler = new SpecificCompiler(protocol)
+			compiler.compileToDestination(file as File, new File(generatedJavaDir))
+		}
+	}
+}
+
+//
+// Publish source jar, including generated files
+//
+task('sourceJar', type: Jar, dependsOn: 'buildAvroDtos') {
+	from sourceSets.main.allSource
+	// Package schemas into source jar
+	into("schema") { from avprFiles }
+}
+
+// Clean "generated" folder upon "clean" task
+clean.doFirst {
+	delete 'generated'
+}
