@@ -58,7 +58,7 @@ task('buildAvroProtocol') {
 	group = "build"
 	inputs.files avprFiles
 	outputs.dir generatedJavaDir
-	doLast {
+	doFirst {
 		avprFiles.each { file ->
 			def protocol = Protocol.parse(file as File)
 //			def schema = new Schema.Parser().parse(file as File)

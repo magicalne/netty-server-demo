@@ -24,9 +24,5 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-build.gradle
 generated/
-gradle/
-gradlew
-gradlew.bat
 src/
