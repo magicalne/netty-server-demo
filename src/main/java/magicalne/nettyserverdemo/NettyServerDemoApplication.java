@@ -22,10 +22,11 @@ import java.util.concurrent.Executors;
 @SpringBootApplication
 public class NettyServerDemoApplication {
 
-	static void start() throws URISyntaxException, IOException {
+	private static void start() throws URISyntaxException, IOException {
 		Executor bossExecutor = Executors.newCachedThreadPool();
 		ExecutorService ioWorkerExecutor = Executors.newCachedThreadPool();
-		OrderedMemoryAwareThreadPoolExecutor orderedMemoryAwareThreadPoolExecutor = new OrderedMemoryAwareThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 0, 0);
+		OrderedMemoryAwareThreadPoolExecutor orderedMemoryAwareThreadPoolExecutor =
+				new OrderedMemoryAwareThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 0, 0);
 		ExecutionHandler executionHandler = new ExecutionHandler(orderedMemoryAwareThreadPoolExecutor);
 		final Server server = new NettyServer(new SpecificResponder(Mail.class, new MailImpl()),
 											  new InetSocketAddress(65111),
